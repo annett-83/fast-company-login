@@ -26,9 +26,6 @@ const AuthProvider = ({ children }) => {
     const [isLoading, setLoading] = useState(true);
     const history = useHistory();
 
-    const editUser = ({ userId, ...data }) => {
-        console.log(userId, data);
-    };
     async function logIn({ email, password }) {
         try {
             const { data } = await httpAuth.post(
@@ -44,7 +41,6 @@ const AuthProvider = ({ children }) => {
         } catch (error) {
             errorCatcher(error);
             const { code, message } = error.response.data.error;
-            console.log(code, message);
             if (code === 400) {
                 switch (message) {
                     case "INVALID_PASSWORD":
@@ -68,6 +64,19 @@ const AuthProvider = ({ children }) => {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
+    async function editUser(data) {
+        try {
+            await createUser(data);
+        } catch (error) {
+            errorCatcher(error);
+            // const { code, message } = error.response.data.error;
+            const errorObject = {
+                email: "Update fehlgeschlagen"
+            };
+            throw errorObject;
+        }
+    }
+
     async function singUp({ email, password, ...rest }) {
         try {
             const { data } = await httpAuth.post(`accounts:signUp`, {
@@ -82,10 +91,10 @@ const AuthProvider = ({ children }) => {
                 rate: randomInt(1, 5),
                 completedMeetings: randomInt(0, 200),
                 image: `https://avatars.dicebear.com/api/avataaars/${(
-                        Math.random() + 1
-                    )
-                        .toString(36)
-                        .substring(7)}.svg`,
+                    Math.random() + 1
+                )
+                    .toString(36)
+                    .substring(7)}.svg`,
                 ...rest
             });
         } catch (error) {
@@ -104,7 +113,6 @@ const AuthProvider = ({ children }) => {
     async function createUser(data) {
         try {
             const { content } = await userService.create(data);
-            console.log(content);
             setUser(content);
         } catch (error) {
             errorCatcher(error);
@@ -139,7 +147,9 @@ const AuthProvider = ({ children }) => {
     }, [error]);
 
     return (
-        <AuthContext.Provider value={{ singUp, logIn, currentUser, logOut, editUser }}>
+        <AuthContext.Provider
+            value={{ singUp, logIn, currentUser, logOut, editUser }}
+        >
             {!isLoading ? children : "Loading..."}
         </AuthContext.Provider>
     );
